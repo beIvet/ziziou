@@ -1,0 +1,6 @@
+{
+  "name": "Birthday Memory Bloom",
+  "description": "A personalized birthday surprise experience with interactive envelope, candle blowing, heartfelt letters, and an ornate vintage museum memory gallery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

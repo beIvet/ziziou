@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+:root {
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Outfit', sans-serif;
+  --background: oklch(14% 0.05 275);
+  --foreground: oklch(96% 0.02 280);
+  --card: oklch(20.8% 0.042 265.755);
+  --card-foreground: oklch(98.4% 0.003 247.858);
+  --primary: oklch(85% 0.12 85);
+  --primary-foreground: oklch(18% 0.05 275);
+  --muted: oklch(27.9% 0.041 260.031);
+  --muted-foreground: oklch(75% 0.04 280);
+  --border: oklch(100% 0 0 / 0.12);
+  --glow: oklch(85% 0.12 85);
+  --gradient-sky: radial-gradient(ellipse at top, oklch(30% 0.1 290), oklch(14% 0.05 275) 60%, oklch(8% 0.03 270));
+  --museum-floor: oklch(20% 0.05 38);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--gradient-sky);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-lora {
+  font-family: 'Lora', Georgia, serif;
+}
+
+.font-caveat {
+  font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
+}
+
+.font-fraunces {
+  font-family: 'Fraunces', serif;
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+.museum-floor {
+  background: var(--museum-floor);
+}
+
+.museum-wall {
+  background: radial-gradient(60% 45% at 50% 30%, oklch(36% 0.06 350 / 0.55), #0000 70%),
+              linear-gradient(oklch(24% 0.05 350) 0%, oklch(20% 0.045 350) 88%, oklch(32% 0.07 45) 88%, oklch(24% 0.06 40) 91%, oklch(36% 0.08 48) 91.5%, oklch(20% 0.05 38) 100%);
+}
+
+.text-glow {
+  text-shadow: 0 0 24px var(--glow), 0 0 45px rgba(230, 200, 120, 0.35);
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.animate-rise {
+  animation: rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-floaty {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+/* Custom scrollbar for horizontal snaps */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
