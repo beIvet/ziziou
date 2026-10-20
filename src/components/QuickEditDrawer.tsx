@@ -13,11 +13,13 @@ import {
   Eye,
   Plus,
   Trash2,
+  Music,
 } from 'lucide-react';
 import { Scene, SiteConfig } from '../types';
 import { sounds } from '../utils/audio';
 import { DoodleIllustration } from './DoodleIllustration';
 import { compressImageFile } from '../utils/imageOptimizer';
+import { BackgroundCustomizerTab } from './BackgroundCustomizerTab';
 
 interface QuickEditDrawerProps {
   config: SiteConfig;
@@ -35,7 +37,7 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
   onJumpScene,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'content' | 'memories' | 'scenes'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'memories' | 'backgrounds'>('content');
   const [copied, setCopied] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(sounds.getIsMusicPlaying());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,6 +145,16 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
             Message
           </button>
           <button
+            onClick={() => onJumpScene('playlist')}
+            className={`px-2 py-0.5 rounded-full transition cursor-pointer ${
+              currentScene === 'playlist'
+                ? 'bg-primary text-primary-foreground font-semibold'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Playlist
+          </button>
+          <button
             onClick={() => onJumpScene('gallery')}
             className={`px-2 py-0.5 rounded-full transition cursor-pointer ${
               currentScene === 'gallery'
@@ -204,18 +216,25 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
             {/* Quick Scene Selector at Top of Drawer */}
             <div className="px-6 py-2.5 bg-white/5 border-b border-white/10 flex items-center justify-between text-xs">
               <span className="text-white/60">Jump to scene:</span>
-              <div className="flex gap-1">
-                {(['letter', 'intro', 'message', 'gallery'] as Scene[]).map((s) => (
+              <div className="flex flex-wrap gap-1">
+                {([
+                  { id: 'calendar', label: 'Calendar' },
+                  { id: 'letter', label: 'Letter' },
+                  { id: 'intro', label: 'Cake' },
+                  { id: 'message', label: 'Card' },
+                  { id: 'playlist', label: 'Playlist' },
+                  { id: 'gallery', label: 'Gallery' },
+                ] as { id: Scene; label: string }[]).map((s) => (
                   <button
-                    key={s}
-                    onClick={() => onJumpScene(s)}
-                    className={`px-2.5 py-1 rounded transition capitalize cursor-pointer ${
-                      currentScene === s
+                    key={s.id}
+                    onClick={() => onJumpScene(s.id)}
+                    className={`px-2 py-0.5 rounded text-[11px] transition cursor-pointer ${
+                      currentScene === s.id
                         ? 'bg-primary text-primary-foreground font-semibold'
                         : 'bg-white/10 text-white/70 hover:text-white hover:bg-white/20'
                     }`}
                   >
-                    {s === 'intro' ? 'Cake' : s}
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -231,7 +250,7 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     : 'border-transparent text-white/60 hover:text-white'
                 }`}
               >
-                Texts & Letter
+                Texts &amp; Flows
               </button>
               <button
                 onClick={() => setActiveTab('memories')}
@@ -241,10 +260,20 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     : 'border-transparent text-white/60 hover:text-white'
                 }`}
               >
-                Museum Photos & Notes
+                Museum Photos
                 <span className="bg-primary/20 text-primary px-1.5 py-0.2 rounded-full text-[10px]">
                   {config.memories.length}
                 </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('backgrounds')}
+                className={`pb-2.5 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'backgrounds'
+                    ? 'border-primary text-primary font-bold'
+                    : 'border-transparent text-white/60 hover:text-white'
+                }`}
+              >
+                <span>🎨 Backgrounds</span>
               </button>
             </div>
 
@@ -287,7 +316,7 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                       <label className="block text-xs text-white/70 mb-1">Top Prompt Hint</label>
                       <input
                         type="text"
-                        value={config.calendarSubtitle ?? 'Find and tap the special birthday date to unlock your surprise'}
+                        value={config.calendarSubtitle ?? 'Can you find your day?'}
                         onChange={(e) =>
                           onUpdateConfig({ ...config, calendarSubtitle: e.target.value })
                         }
@@ -810,10 +839,73 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     </div>
                   </div>
 
+                  {/* 4. Spotify Mixtape & Playlist */}
+                  <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                        <Music size={13} />
+                        <span>4. Spotify Playlist (After Birthday Card)</span>
+                      </h4>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Playlist Title</label>
+                      <input
+                        type="text"
+                        value={config.playlistTitle ?? 'A Soundtrack For You'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, playlistTitle: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Sentimental Subtitle</label>
+                      <textarea
+                        rows={2}
+                        value={config.playlistSubtitle ?? 'Songs that remind me of you, and melodies I hope you love ✨'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, playlistSubtitle: e.target.value })
+                        }
+                        placeholder="Write a sweet note about why these songs remind you of him..."
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-1.5 text-white text-xs focus:border-primary outline-none font-lora italic"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Spotify Playlist or Track Link</label>
+                      <input
+                        type="text"
+                        value={config.playlistSpotifyUrl ?? 'https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, playlistSpotifyUrl: e.target.value })
+                        }
+                        placeholder="https://open.spotify.com/playlist/..."
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white text-xs font-mono focus:border-primary outline-none"
+                      />
+                      <p className="mt-1 text-[11px] text-white/50">
+                        Copy any playlist, album, or song link from Spotify and paste it here. It will embed automatically!
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Button to Museum Gallery</label>
+                      <input
+                        type="text"
+                        value={config.playlistButtonText ?? 'Continue to the Museum Gallery →'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, playlistButtonText: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:border-primary outline-none"
+                      />
+                    </div>
+                  </div>
+
                   {/* Museum Gallery Titles */}
                   <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-primary">
-                      4. Museum Gallery Titles & Epilogue
+                      5. Museum Gallery Titles & Epilogue
                     </h4>
                     <div>
                       <label className="block text-xs text-white/70 mb-1">Gallery Main Title</label>
@@ -1011,6 +1103,16 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     </div>
                   ))}
                 </div>
+              )}
+
+              {/* Backgrounds Tab Content */}
+              {activeTab === 'backgrounds' && (
+                <BackgroundCustomizerTab
+                  config={config}
+                  onUpdateConfig={onUpdateConfig}
+                  currentScene={currentScene}
+                  onJumpScene={onJumpScene}
+                />
               )}
             </div>
 

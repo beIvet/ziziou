@@ -8,6 +8,7 @@ interface CalendarSceneProps {
   targetDay?: number;
   monthName?: string;
   subtitle?: string;
+  hasCustomBackground?: boolean;
   onContinue: () => void;
 }
 
@@ -15,7 +16,8 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
   recipientName,
   targetDay = 26,
   monthName = 'OCTOBER',
-  subtitle = 'Find and tap the special birthday date to unlock your surprise',
+  subtitle = 'Can you find your day?',
+  hasCustomBackground = false,
   onContinue,
 }) => {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -85,7 +87,7 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
 
     if (day === targetDay) {
       setIsSuccess(true);
-      setFeedback(`🎉 October ${day} — That's the special birthday! Opening letter...`);
+      setFeedback("🎉 You found it! Opening your birthday surprise...");
       sounds.playCelebrationFanfare();
 
       try {
@@ -103,15 +105,17 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
         onContinue();
       }, 1400);
     } else {
-      setFeedback(`Not October ${day}! Keep searching for the birthday date... 👀`);
-      sounds.playBlowCandle(); // soft tap feedback
+      setFeedback("Nothing happened... 🤔");
+      sounds.playBlowCandle(); // soft subtle tap feedback
     }
   };
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center px-4 py-8 z-10 bg-gradient-to-b from-[#e35d37] via-[#d6512b] to-[#b93f1d]">
+    <section className={`relative flex min-h-screen flex-col items-center justify-center px-4 py-8 z-10 ${hasCustomBackground ? 'bg-transparent' : 'bg-gradient-to-b from-[#e35d37] via-[#d6512b] to-[#b93f1d]'}`}>
       {/* Background subtle noise and warm retro glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+      {!hasCustomBackground && (
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+      )}
 
       {/* Top prompt */}
       <div className="animate-rise text-center mb-4 z-10 max-w-md">
@@ -147,8 +151,8 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
             <span className="font-display italic text-white/95 text-sm sm:text-base drop-shadow-sm">
               {recipientName ? `A birthday surprise for ${recipientName} 🎂` : 'A very special date awaits ✨'}
             </span>
-            <p className="text-[11px] font-mono text-amber-200 mt-1 uppercase tracking-wider">
-              Tap October 26 to continue
+            <p className="text-[11px] font-mono text-amber-200/80 mt-1 tracking-wider">
+              Only someone special knows which day to tap...
             </p>
           </div>
 
@@ -243,28 +247,25 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
                 <span className="text-xs font-bold text-black">25</span>
               </button>
 
-              {/* TARGET BIRTHDAY DATE: OCTOBER 26 */}
+              {/* TARGET BIRTHDAY DATE: OCTOBER 26 (Looks identical to any normal date until clicked) */}
               <button
                 onClick={() => handleDayClick(26)}
-                aria-label="October 26 Birthday Date"
+                aria-label="Day 26"
                 className={`relative p-1 text-left transition-all cursor-pointer flex flex-col justify-between ${
                   isSuccess
-                    ? 'bg-yellow-300 ring-4 ring-red-500 scale-105 z-20'
-                    : 'bg-yellow-100 hover:bg-yellow-200 group'
+                    ? 'bg-yellow-300 ring-4 ring-amber-500 scale-105 z-20 animate-pulse'
+                    : 'hover:bg-amber-200/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-black">26</span>
-                  <span className="text-xs">🎂</span>
+                  <span className="text-xs font-bold text-black">26</span>
+                  {isSuccess && <span className="text-xs animate-bounce">🎂</span>}
                 </div>
-                {/* Hand-drawn red circled heart effect */}
-                <div
-                  className={`border-2 border-red-500 rounded-full py-0.5 px-1 text-[9px] font-bold text-red-600 text-center leading-none ${
-                    isSuccess ? 'animate-bounce bg-red-100' : 'group-hover:border-red-600'
-                  }`}
-                >
-                  B-DAY
-                </div>
+                {isSuccess && (
+                  <div className="border border-red-500 rounded-full py-0.5 px-1 text-[8px] font-bold text-red-600 text-center leading-none bg-red-100">
+                    YOU! ✨
+                  </div>
+                )}
               </button>
 
               {[27, 28, 29, 30, 31].map((d) => (
@@ -287,7 +288,7 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
               isSuccess ? 'text-yellow-300 font-bold' : feedback ? 'text-amber-200' : 'text-zinc-400'
             }`}
           >
-            {feedback || `Tap October ${targetDay} to open the birthday letter! ✉️`}
+            {feedback || 'Tap a date on the calendar to explore...'}
           </p>
         </div>
       </div>

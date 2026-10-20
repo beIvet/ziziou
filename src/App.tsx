@@ -11,6 +11,7 @@ import { CalendarScene } from './components/CalendarScene';
 import { LetterScene } from './components/LetterScene';
 import { CakeScene } from './components/CakeScene';
 import { MessageScene } from './components/MessageScene';
+import { PlaylistScene } from './components/PlaylistScene';
 import { GalleryScene } from './components/GalleryScene';
 import { LightboxModal } from './components/LightboxModal';
 import { QuickEditDrawer } from './components/QuickEditDrawer';
@@ -63,10 +64,71 @@ export default function App() {
     }
   };
 
+  // Determine active background for the current scene (page-specific or global)
+  const getSceneBackground = (currentScene: Scene): string => {
+    switch (currentScene) {
+      case 'calendar':
+        return config.calendarBackground || config.globalBackground || '';
+      case 'letter':
+        return config.letterBackground || config.globalBackground || '';
+      case 'intro':
+        return config.cakeBackground || config.globalBackground || '';
+      case 'message':
+        return config.messageBackground || config.globalBackground || '';
+      case 'playlist':
+        return config.playlistBackground || config.globalBackground || '';
+      case 'gallery':
+        return config.galleryBackground || config.globalBackground || '';
+      default:
+        return config.globalBackground || '';
+    }
+  };
+
+  const activeBg = getSceneBackground(scene);
+  const isImageBg = Boolean(
+    activeBg &&
+      (activeBg.startsWith('data:image') ||
+        activeBg.startsWith('http://') ||
+        activeBg.startsWith('https://') ||
+        activeBg.startsWith('/') ||
+        activeBg.includes('.png') ||
+        activeBg.includes('.jpg') ||
+        activeBg.includes('.webp') ||
+        activeBg.includes('.svg'))
+  );
+
   return (
     <main className="relative min-h-screen overflow-hidden text-foreground selection:bg-primary/30 selection:text-white">
-      {/* Twinkling starfield for space/sky scenes */}
-      {scene !== 'gallery' && scene !== 'calendar' && <StarField />}
+      {/* Dynamic Background Layer */}
+      {activeBg ? (
+        <div className="fixed inset-0 z-0 pointer-events-none transition-all duration-700">
+          {isImageBg ? (
+            <img
+              src={activeBg}
+              alt="Custom background"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ background: activeBg }}
+            />
+          )}
+          {/* Subtle dimming overlay so text and UI are always 100% readable */}
+          <div
+            className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-300"
+            style={{ opacity: (config.backgroundOverlayOpacity ?? 35) / 100 }}
+          />
+        </div>
+      ) : null}
+
+      {/* Twinkling starfield for space/sky scenes (if no custom background or as subtle layer) */}
+      {!activeBg && scene !== 'gallery' && scene !== 'calendar' && <StarField />}
+      {activeBg && scene !== 'gallery' && (
+        <div className="opacity-30 pointer-events-none fixed inset-0 z-0">
+          <StarField />
+        </div>
+      )}
 
       {/* 0. First Page: Retro October Calendar Scene */}
       {scene === 'calendar' && (
@@ -74,7 +136,8 @@ export default function App() {
           recipientName={config.recipientName}
           targetDay={config.calendarTargetDay ?? 26}
           monthName={config.calendarMonthName ?? 'OCTOBER'}
-          subtitle={config.calendarSubtitle ?? 'Find and tap the special birthday date to unlock your surprise'}
+          subtitle={config.calendarSubtitle ?? 'Can you find your day?'}
+          hasCustomBackground={Boolean(activeBg)}
           onContinue={() => setScene('letter')}
         />
       )}
@@ -119,12 +182,26 @@ export default function App() {
           cardLeftMessage={config.cardLeftMessage || 'May your year ahead be as bright, radiant, and full of joy as you make the lives of everyone around you.'}
           cardLeftImage={config.cardLeftImage || ''}
           onUpdateCardLeftImage={(img) => handleUpdateConfig({ ...config, cardLeftImage: img })}
-          onContinue={() => setScene('gallery')}
+          onContinue={() => setScene('playlist')}
           onBackToCake={() => setScene('intro')}
         />
       )}
 
-      {/* 4. Ornate Museum Art Gallery Scene */}
+      {/* 4. Spotify Playlist Scene (Right after the message) */}
+      {scene === 'playlist' && (
+        <PlaylistScene
+          recipientName={config.recipientName}
+          title={config.playlistTitle || 'A Soundtrack For You'}
+          subtitle={config.playlistSubtitle || 'Songs that remind me of you, and melodies I hope you love ✨'}
+          spotifyUrl={config.playlistSpotifyUrl || 'https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6'}
+          buttonText={config.playlistButtonText || 'Continue to the Museum Gallery →'}
+          onUpdateSpotifyUrl={(url) => handleUpdateConfig({ ...config, playlistSpotifyUrl: url })}
+          onContinue={() => setScene('gallery')}
+          onBackToCard={() => setScene('message')}
+        />
+      )}
+
+      {/* 5. Ornate Museum Art Gallery Scene */}
       {scene === 'gallery' && (
         <GalleryScene
           title={config.galleryTitle}
@@ -134,7 +211,7 @@ export default function App() {
           showCurtains={config.showGalleryCurtains ?? true}
           curtainsImage={config.galleryCurtainsImage || ''}
           onSelectMemory={(index) => setSelectedMemoryIndex(index)}
-          onBackToMessage={() => setScene('message')}
+          onBackToMessage={() => setScene('playlist')}
         />
       )}
 

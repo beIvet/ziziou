@@ -1,4 +1,4 @@
-export type Scene = 'calendar' | 'letter' | 'intro' | 'message' | 'gallery';
+export type Scene = 'calendar' | 'letter' | 'intro' | 'message' | 'playlist' | 'gallery';
 
 export interface MemoryItem {
   id: string;
@@ -54,4 +54,18 @@ export interface SiteConfig {
   calendarMonthName?: string;
   calendarSubtitle?: string;
   calendarImage?: string;
+  // Spotify Playlist Scene
+  playlistTitle?: string;
+  playlistSubtitle?: string;
+  playlistSpotifyUrl?: string;
+  playlistButtonText?: string;
+  // Custom Page Backgrounds (image dataUrl or CSS color/gradient)
+  calendarBackground?: string;
+  letterBackground?: string;
+  cakeBackground?: string;
+  messageBackground?: string;
+  playlistBackground?: string;
+  galleryBackground?: string;
+  globalBackground?: string;
+  backgroundOverlayOpacity?: number;
 }
