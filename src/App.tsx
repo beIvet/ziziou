@@ -15,34 +15,36 @@ import { GalleryScene } from './components/GalleryScene';
 import { LightboxModal } from './components/LightboxModal';
 import { QuickEditDrawer } from './components/QuickEditDrawer';
 
-const STORAGE_KEY = 'birthday_memory_bloom_config_v4';
+import { saveSiteConfig, loadSiteConfig, getInitialLocalConfig, clearSiteConfig } from './utils/storage';
 
 export default function App() {
   const [scene, setScene] = useState<Scene>('calendar');
   const [selectedMemoryIndex, setSelectedMemoryIndex] = useState<number | null>(null);
 
-  // Initialize config with localStorage persistence so the user's edits are never lost
+  // Initialize config with instant cache from localStorage + background hydrate from IndexedDB
   const [config, setConfig] = useState<SiteConfig>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('birthday_memory_bloom_config_v1');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_SITE_CONFIG,
-          ...parsed,
-          messageCardStyle: 'typewriter',
-          messageBackgroundImage: parsed.messageBackgroundImage || '/assets/typewriter-letter.jpg',
-        };
-      }
-    } catch {
-      // ignore
+    const saved = getInitialLocalConfig();
+    if (saved) {
+      return {
+        ...DEFAULT_SITE_CONFIG,
+        ...saved,
+      };
     }
-    return {
-      ...DEFAULT_SITE_CONFIG,
-      messageCardStyle: 'typewriter',
-      messageBackgroundImage: '/assets/typewriter-letter.jpg',
-    };
+    return DEFAULT_SITE_CONFIG;
   });
+
+  // Reconcile and hydrate full data from IndexedDB on startup (unlimited storage)
+  useEffect(() => {
+    loadSiteConfig().then((stored) => {
+      if (stored) {
+        setConfig((prev) => ({
+          ...DEFAULT_SITE_CONFIG,
+          ...prev,
+          ...stored,
+        }));
+      }
+    });
+  }, []);
 
   // Sync title with recipient
   useEffect(() => {
@@ -51,21 +53,13 @@ export default function App() {
 
   const handleUpdateConfig = (newConfig: SiteConfig) => {
     setConfig(newConfig);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
-    } catch {
-      // ignore quota exceeded if huge images
-    }
+    saveSiteConfig(newConfig);
   };
 
   const handleResetDefaults = () => {
     if (window.confirm('Reset all texts, wishes, and photos back to the original template?')) {
       setConfig(DEFAULT_SITE_CONFIG);
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // ignore
-      }
+      clearSiteConfig();
     }
   };
 

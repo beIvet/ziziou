@@ -3,6 +3,8 @@ import confetti from 'canvas-confetti';
 import { Sparkles, Feather, RotateCcw, Heart, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { sounds } from '../utils/audio';
 
+import { compressImageFile } from '../utils/imageOptimizer';
+
 interface MessageSceneProps {
   messageText: string;
   buttonText: string;
@@ -80,17 +82,24 @@ export const MessageScene: React.FC<MessageSceneProps> = ({
     setIsOpen(true);
   };
 
-  const handleLeftPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLeftPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
+    try {
+      const optimizedUrl = await compressImageFile(file);
       if (onUpdateCardLeftImage) {
-        onUpdateCardLeftImage(dataUrl);
+        onUpdateCardLeftImage(optimizedUrl);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (onUpdateCardLeftImage) {
+          onUpdateCardLeftImage(dataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ import {
 import { Scene, SiteConfig } from '../types';
 import { sounds } from '../utils/audio';
 import { DoodleIllustration } from './DoodleIllustration';
+import { compressImageFile } from '../utils/imageOptimizer';
 
 interface QuickEditDrawerProps {
   config: SiteConfig;
@@ -51,18 +52,25 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
+    try {
+      const dataUrl = await compressImageFile(file);
       const updated = [...config.memories];
       updated[index] = { ...updated[index], src: dataUrl };
       onUpdateConfig({ ...config, memories: updated });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        const updated = [...config.memories];
+        updated[index] = { ...updated[index], src: dataUrl };
+        onUpdateConfig({ ...config, memories: updated });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleAddMemory = () => {
@@ -178,7 +186,12 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
             <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#1f1933]">
               <div className="flex items-center gap-2">
                 <Sparkles className="text-primary" size={18} />
-                <h3 className="font-display italic text-lg font-bold">Fast Site Customizer</h3>
+                <div>
+                  <h3 className="font-display italic text-base sm:text-lg font-bold">Fast Site Customizer</h3>
+                  <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                    <Check size={11} /> Saved automatically to device
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -343,15 +356,20 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
+                                try {
+                                  const dataUrl = await compressImageFile(file);
                                   onUpdateConfig({ ...config, envelopeImage: dataUrl });
-                                };
-                                reader.readAsDataURL(file);
+                                } catch {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    const dataUrl = event.target?.result as string;
+                                    onUpdateConfig({ ...config, envelopeImage: dataUrl });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
                               }}
                             />
                           </label>
@@ -484,15 +502,20 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0];
                                       if (!file) return;
-                                      const reader = new FileReader();
-                                      reader.onload = (event) => {
-                                        const dataUrl = event.target?.result as string;
+                                      try {
+                                        const dataUrl = await compressImageFile(file);
                                         onUpdateConfig({ ...config, preCakeImage: dataUrl });
-                                      };
-                                      reader.readAsDataURL(file);
+                                      } catch {
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                          const dataUrl = event.target?.result as string;
+                                          onUpdateConfig({ ...config, preCakeImage: dataUrl });
+                                        };
+                                        reader.readAsDataURL(file);
+                                      }
                                     }}
                                   />
                                 </label>
@@ -617,15 +640,20 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const file = e.target.files?.[0];
                                   if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onload = (event) => {
-                                    const dataUrl = event.target?.result as string;
-                                    onUpdateConfig({ ...config, cardLeftImage: dataUrl });
-                                  };
-                                  reader.readAsDataURL(file);
+                                  try {
+                                    const optimized = await compressImageFile(file);
+                                    onUpdateConfig({ ...config, cardLeftImage: optimized });
+                                  } catch {
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      const dataUrl = event.target?.result as string;
+                                      onUpdateConfig({ ...config, cardLeftImage: dataUrl });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
                                 }}
                               />
                             </label>
@@ -850,15 +878,20 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
+                                try {
+                                  const dataUrl = await compressImageFile(file);
                                   onUpdateConfig({ ...config, galleryCurtainsImage: dataUrl });
-                                };
-                                reader.readAsDataURL(file);
+                                } catch {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    const dataUrl = event.target?.result as string;
+                                    onUpdateConfig({ ...config, galleryCurtainsImage: dataUrl });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
                               }}
                             />
                           </label>
