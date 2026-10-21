@@ -14,12 +14,16 @@ import {
   Plus,
   Trash2,
   Music,
+  Share2,
+  Save,
+  Smartphone,
 } from 'lucide-react';
 import { Scene, SiteConfig } from '../types';
 import { sounds } from '../utils/audio';
 import { DoodleIllustration } from './DoodleIllustration';
 import { compressImageFile } from '../utils/imageOptimizer';
 import { BackgroundCustomizerTab } from './BackgroundCustomizerTab';
+import { saveConfigToProjectFiles, exportConfigToShareUrl } from '../utils/storage';
 
 interface QuickEditDrawerProps {
   config: SiteConfig;
@@ -43,9 +47,31 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingMemIndex, setEditingMemIndex] = useState<number | null>(null);
 
+  const [isSavingToFiles, setIsSavingToFiles] = useState(false);
+  const [saveToFilesSuccess, setSaveToFilesSuccess] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
+
   const toggleMusic = () => {
     const next = sounds.toggleAmbientMusic((p) => setIsMusicOn(p));
     setIsMusicOn(next);
+  };
+
+  const handleSaveToFiles = async () => {
+    setIsSavingToFiles(true);
+    setSaveToFilesSuccess(false);
+    const success = await saveConfigToProjectFiles(config);
+    setIsSavingToFiles(false);
+    if (success) {
+      setSaveToFilesSuccess(true);
+      setTimeout(() => setSaveToFilesSuccess(false), 3500);
+    }
+  };
+
+  const handleCopyShareLink = () => {
+    const shareUrl = exportConfigToShareUrl(config);
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedShareLink(true);
+    setTimeout(() => setCopiedShareLink(false), 3000);
   };
 
   const handleCopyJSON = () => {
@@ -1114,6 +1140,52 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                   onJumpScene={onJumpScene}
                 />
               )}
+            </div>
+
+            {/* Sync Across Devices & GitHub */}
+            <div className="px-6 py-3 bg-[#130f21] border-t border-white/10 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-white">
+                <span className="flex items-center gap-1.5 text-primary">
+                  <Share2 size={13} />
+                  <span>Sync Across Devices &amp; GitHub</span>
+                </span>
+                {saveToFilesSuccess && (
+                  <span className="text-[11px] text-emerald-400 font-mono animate-fade-in">
+                    ✓ Saved to project source!
+                  </span>
+                )}
+                {copiedShareLink && (
+                  <span className="text-[11px] text-emerald-400 font-mono animate-fade-in">
+                    ✓ Mobile link copied!
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveToFiles}
+                  disabled={isSavingToFiles}
+                  className="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md"
+                  title="Writes your current edits into defaultData.ts so GitHub, InfinityFree, and all visitors see them"
+                >
+                  <Save size={13} />
+                  <span>{isSavingToFiles ? 'Saving...' : 'Save to Project Files'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyShareLink}
+                  className="px-3 py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Copy a special link to open on your phone with all your edits"
+                >
+                  <Smartphone size={13} />
+                  <span>Copy Link for Phone</span>
+                </button>
+              </div>
+              <p className="text-[10px] text-white/50 leading-relaxed">
+                <strong className="text-white/80">Save to Project Files:</strong> permanently commits your edits into the code so GitHub, your phone, and InfinityFree load them automatically.
+              </p>
             </div>
 
             {/* Footer with Copy JSON and Reset */}

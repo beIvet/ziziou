@@ -150,3 +150,57 @@ export async function clearSiteConfig(): Promise<void> {
     // ignore
   }
 }
+
+/**
+ * Save current active browser config directly to repository files in dev mode
+ */
+export async function saveConfigToProjectFiles(config: SiteConfig): Promise<boolean> {
+  try {
+    const res = await fetch('/api/save-defaults', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Generate a shareable URL containing the complete config for instant mobile sync
+ */
+export function exportConfigToShareUrl(config: SiteConfig): string {
+  try {
+    const json = JSON.stringify(config);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    const url = new URL(window.location.href);
+    url.hash = `cfg=${encoded}`;
+    return url.toString();
+  } catch (err) {
+    console.error('Failed to encode share URL', err);
+    return window.location.href;
+  }
+}
+
+/**
+ * Check if the current page URL has an imported config and decode it
+ */
+export function importConfigFromUrl(): SiteConfig | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#cfg=')) {
+      const encoded = hash.slice(5);
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const parsed = JSON.parse(json);
+      // Clean hash from URL for cleaner look
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      return parsed;
+    }
+  } catch (err) {
+    console.warn('Could not parse config from URL hash:', err);
+  }
+  return null;
+}
+

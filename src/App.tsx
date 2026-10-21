@@ -16,11 +16,19 @@ import { GalleryScene } from './components/GalleryScene';
 import { LightboxModal } from './components/LightboxModal';
 import { QuickEditDrawer } from './components/QuickEditDrawer';
 
-import { saveSiteConfig, loadSiteConfig, getInitialLocalConfig, clearSiteConfig } from './utils/storage';
+import { Check } from 'lucide-react';
+import {
+  saveSiteConfig,
+  loadSiteConfig,
+  getInitialLocalConfig,
+  clearSiteConfig,
+  importConfigFromUrl,
+} from './utils/storage';
 
 export default function App() {
   const [scene, setScene] = useState<Scene>('calendar');
   const [selectedMemoryIndex, setSelectedMemoryIndex] = useState<number | null>(null);
+  const [showSyncBanner, setShowSyncBanner] = useState(false);
 
   // Initialize config with instant cache from localStorage + background hydrate from IndexedDB
   const [config, setConfig] = useState<SiteConfig>(() => {
@@ -34,8 +42,20 @@ export default function App() {
     return DEFAULT_SITE_CONFIG;
   });
 
-  // Reconcile and hydrate full data from IndexedDB on startup (unlimited storage)
+  // Reconcile and hydrate data on startup
   useEffect(() => {
+    // 1. Check if a mobile sync URL was opened
+    const urlConfig = importConfigFromUrl();
+    if (urlConfig) {
+      const merged = { ...DEFAULT_SITE_CONFIG, ...urlConfig };
+      setConfig(merged);
+      saveSiteConfig(merged);
+      setShowSyncBanner(true);
+      setTimeout(() => setShowSyncBanner(false), 4500);
+      return;
+    }
+
+    // 2. Otherwise hydrate from IndexedDB
     loadSiteConfig().then((stored) => {
       if (stored) {
         setConfig((prev) => ({
@@ -99,6 +119,14 @@ export default function App() {
 
   return (
     <main className="relative min-h-screen overflow-hidden text-foreground selection:bg-primary/30 selection:text-white">
+      {/* Mobile / URL Sync Toast Notification */}
+      {showSyncBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-2.5 rounded-full shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2 animate-bounce border border-emerald-400">
+          <Check size={16} />
+          <span>Settings successfully imported &amp; saved to this device!</span>
+        </div>
+      )}
+
       {/* Dynamic Background Layer */}
       {activeBg ? (
         <div className="fixed inset-0 z-0 pointer-events-none transition-all duration-700">
