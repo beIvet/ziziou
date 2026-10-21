@@ -17,6 +17,7 @@ import {
   Share2,
   Save,
   Smartphone,
+  Ticket,
 } from 'lucide-react';
 import { Scene, SiteConfig } from '../types';
 import { sounds } from '../utils/audio';
@@ -181,6 +182,16 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
             Playlist
           </button>
           <button
+            onClick={() => onJumpScene('voucher')}
+            className={`px-2 py-0.5 rounded-full transition cursor-pointer ${
+              currentScene === 'voucher'
+                ? 'bg-primary text-primary-foreground font-semibold'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Voucher
+          </button>
+          <button
             onClick={() => onJumpScene('gallery')}
             className={`px-2 py-0.5 rounded-full transition cursor-pointer ${
               currentScene === 'gallery'
@@ -249,6 +260,7 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                   { id: 'intro', label: 'Cake' },
                   { id: 'message', label: 'Card' },
                   { id: 'playlist', label: 'Playlist' },
+                  { id: 'voucher', label: 'Voucher' },
                   { id: 'gallery', label: 'Gallery' },
                 ] as { id: Scene; label: string }[]).map((s) => (
                   <button
@@ -916,10 +928,10 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs text-white/70 mb-1">Button to Museum Gallery</label>
+                      <label className="block text-xs text-white/70 mb-1">Button to Next Page</label>
                       <input
                         type="text"
-                        value={config.playlistButtonText ?? 'Continue to the Museum Gallery →'}
+                        value={config.playlistButtonText ?? 'Continue to Birthday Voucher →'}
                         onChange={(e) =>
                           onUpdateConfig({ ...config, playlistButtonText: e.target.value })
                         }
@@ -928,10 +940,89 @@ export const QuickEditDrawer: React.FC<QuickEditDrawerProps> = ({
                     </div>
                   </div>
 
+                  {/* 5. Roblox VIP Birthday Voucher */}
+                  <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                        <Ticket size={13} />
+                        <span>5. Roblox VIP Birthday Voucher (After Playlist)</span>
+                      </h4>
+                      {config.voucherClaimed && (
+                        <button
+                          type="button"
+                          onClick={() => onUpdateConfig({ ...config, voucherClaimed: false })}
+                          className="text-[11px] text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                        >
+                          Reset Claimed Status
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Voucher Main Title</label>
+                      <input
+                        type="text"
+                        value={config.voucherTitle ?? 'One Amazing Roblox Session'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, voucherTitle: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white text-sm focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Subtitle / Conditions</label>
+                      <textarea
+                        rows={2}
+                        value={config.voucherSubtitle ?? 'With No Losing Connection Voucher\nredeemable anytime'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, voucherSubtitle: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-1.5 text-white text-xs focus:border-primary outline-none font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Ticket Main Text</label>
+                      <textarea
+                        rows={2}
+                        value={config.voucherMainText ?? "this voucher let's you play roblox with\nthe most amazing and talented dalal!"}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, voucherMainText: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-1.5 text-white text-xs focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Game Choice &amp; Rules Note</label>
+                      <textarea
+                        rows={3}
+                        value={config.voucherGameText ?? 'game: of your choosing\n(cuz I made this whole ass voucher\nYOU LOOK FOR THE DAMN GAME)'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, voucherGameText: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-1.5 text-white text-xs focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Extra Rewards Line</label>
+                      <input
+                        type="text"
+                        value={config.voucherExtraRewardsText ?? 'extra rewards: unlimited compliant\nand'}
+                        onChange={(e) =>
+                          onUpdateConfig({ ...config, voucherExtraRewardsText: e.target.value })
+                        }
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white text-xs focus:border-primary outline-none"
+                      />
+                    </div>
+                  </div>
+
                   {/* Museum Gallery Titles */}
                   <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-primary">
-                      5. Museum Gallery Titles & Epilogue
+                      6. Museum Gallery Titles & Epilogue
                     </h4>
                     <div>
                       <label className="block text-xs text-white/70 mb-1">Gallery Main Title</label>

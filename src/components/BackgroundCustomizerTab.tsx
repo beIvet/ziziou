@@ -77,8 +77,14 @@ export const BackgroundCustomizerTab: React.FC<BackgroundCustomizerTabProps> = (
       description: 'The musical scene with the embedded Spotify player',
     },
     {
+      id: 'voucher',
+      name: '6. Roblox VIP Birthday Voucher',
+      key: 'voucherBackground',
+      description: 'The Nyan Cat rainbow in space background behind the voucher card',
+    },
+    {
       id: 'gallery',
-      name: '6. Museum Art Gallery',
+      name: '7. Museum Art Gallery',
       key: 'galleryBackground',
       description: 'The museum wall behind framed memory paintings and curtains',
     },

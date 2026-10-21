@@ -132,7 +132,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   calendarTargetDay: 26,
   calendarMonthName: 'OCTOBER',
   calendarSubtitle: 'Can you find your day?',
-  calendarImage: '',
+  calendarImage: '/assets/october-cat-calendar.png',
   playlistTitle: 'A Soundtrack For You',
   playlistSubtitle: 'Songs that remind me of you, and melodies I hope you love ✨',
   playlistSpotifyUrl: 'https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6', // Chill Lofi / Warm Vibes
@@ -142,7 +142,17 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   cakeBackground: '',
   messageBackground: '',
   playlistBackground: '',
+  voucherBackground: '/assets/voucher-page-bg.png',
   galleryBackground: '',
   globalBackground: '',
   backgroundOverlayOpacity: 35,
+  // Voucher Scene Defaults (Roblox VIP Birthday Pass)
+  voucherTitle: 'One Amazing Roblox Session',
+  voucherSubtitle: 'With No Losing Connection Voucher\nredeemable anytime',
+  voucherBadgeText: 'VIP BIRTHDAY\nPASS',
+  voucherValidityText: 'valid\nforever',
+  voucherMainText: "this voucher let's you play roblox with\nthe most amazing and talented dalal!",
+  voucherGameText: 'game: of your choosing\n(cuz I made this whole ass voucher\nYOU LOOK FOR THE DAMN GAME)',
+  voucherExtraRewardsText: 'extra rewards: unlimited compliant\nand',
+  voucherClaimed: false,
 };

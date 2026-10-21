@@ -12,6 +12,7 @@ import { LetterScene } from './components/LetterScene';
 import { CakeScene } from './components/CakeScene';
 import { MessageScene } from './components/MessageScene';
 import { PlaylistScene } from './components/PlaylistScene';
+import { VoucherScene } from './components/VoucherScene';
 import { GalleryScene } from './components/GalleryScene';
 import { LightboxModal } from './components/LightboxModal';
 import { QuickEditDrawer } from './components/QuickEditDrawer';
@@ -97,6 +98,8 @@ export default function App() {
         return config.messageBackground || config.globalBackground || '';
       case 'playlist':
         return config.playlistBackground || config.globalBackground || '';
+      case 'voucher':
+        return config.voucherBackground || config.globalBackground || '';
       case 'gallery':
         return config.galleryBackground || config.globalBackground || '';
       default:
@@ -165,6 +168,7 @@ export default function App() {
           targetDay={config.calendarTargetDay ?? 26}
           monthName={config.calendarMonthName ?? 'OCTOBER'}
           subtitle={config.calendarSubtitle ?? 'Can you find your day?'}
+          calendarImage={config.calendarImage || '/assets/october-cat-calendar.png'}
           hasCustomBackground={Boolean(activeBg)}
           onContinue={() => setScene('letter')}
         />
@@ -222,14 +226,34 @@ export default function App() {
           title={config.playlistTitle || 'A Soundtrack For You'}
           subtitle={config.playlistSubtitle || 'Songs that remind me of you, and melodies I hope you love ✨'}
           spotifyUrl={config.playlistSpotifyUrl || 'https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6'}
-          buttonText={config.playlistButtonText || 'Continue to the Museum Gallery →'}
+          buttonText={config.playlistButtonText || 'Continue to Birthday Voucher →'}
           onUpdateSpotifyUrl={(url) => handleUpdateConfig({ ...config, playlistSpotifyUrl: url })}
-          onContinue={() => setScene('gallery')}
+          onContinue={() => setScene('voucher')}
           onBackToCard={() => setScene('message')}
         />
       )}
 
-      {/* 5. Ornate Museum Art Gallery Scene */}
+      {/* 5. Roblox VIP Birthday Voucher Scene (After Playlist) */}
+      {scene === 'voucher' && (
+        <VoucherScene
+          recipientName={config.recipientName}
+          title={config.voucherTitle || 'One Amazing Roblox Session'}
+          subtitle={config.voucherSubtitle || 'With No Losing Connection Voucher\nredeemable anytime'}
+          badgeText={config.voucherBadgeText || 'VIP BIRTHDAY\nPASS'}
+          validityText={config.voucherValidityText || 'valid\nforever'}
+          mainText={config.voucherMainText || "this voucher let's you play roblox with\nthe most amazing and talented dalal!"}
+          gameText={config.voucherGameText || 'game: of your choosing\n(cuz I made this whole ass voucher\nYOU LOOK FOR THE DAMN GAME)'}
+          extraRewardsText={config.voucherExtraRewardsText || 'extra rewards: unlimited compliant\nand'}
+          claimed={config.voucherClaimed ?? false}
+          backgroundImage={config.voucherBackground || '/assets/voucher-page-bg.png'}
+          hasCustomBackground={Boolean(activeBg)}
+          onClaim={() => handleUpdateConfig({ ...config, voucherClaimed: true })}
+          onContinue={() => setScene('gallery')}
+          onReturn={() => setScene('playlist')}
+        />
+      )}
+
+      {/* 6. Ornate Museum Art Gallery Scene */}
       {scene === 'gallery' && (
         <GalleryScene
           title={config.galleryTitle}
@@ -239,7 +263,7 @@ export default function App() {
           showCurtains={config.showGalleryCurtains ?? true}
           curtainsImage={config.galleryCurtainsImage || ''}
           onSelectMemory={(index) => setSelectedMemoryIndex(index)}
-          onBackToMessage={() => setScene('playlist')}
+          onBackToMessage={() => setScene('voucher')}
         />
       )}
 

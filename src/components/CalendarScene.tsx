@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, Calendar as CalendarIcon, Heart, PartyPopper } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { sounds } from '../utils/audio';
 
 interface CalendarSceneProps {
@@ -8,94 +8,115 @@ interface CalendarSceneProps {
   targetDay?: number;
   monthName?: string;
   subtitle?: string;
+  calendarImage?: string;
   hasCustomBackground?: boolean;
   onContinue: () => void;
 }
 
+// 5 rows x 7 columns = 35 cells matching the poster grid
+interface GridCell {
+  row: number;
+  col: number;
+  day?: number;
+  type: 'day' | 'notes' | 'empty' | 'star';
+  label?: string;
+}
+
+const POSTER_CELLS: GridCell[] = [
+  // Row 0
+  { row: 0, col: 0, type: 'notes', label: 'NOTES' },
+  { row: 0, col: 1, type: 'empty' },
+  { row: 0, col: 2, type: 'empty' },
+  { row: 0, col: 3, type: 'empty' },
+  { row: 0, col: 4, type: 'day', day: 1 },
+  { row: 0, col: 5, type: 'day', day: 2 },
+  { row: 0, col: 6, type: 'day', day: 3 },
+
+  // Row 1
+  { row: 1, col: 0, type: 'day', day: 5 },
+  { row: 1, col: 1, type: 'day', day: 6 },
+  { row: 1, col: 2, type: 'day', day: 7 },
+  { row: 1, col: 3, type: 'day', day: 8 },
+  { row: 1, col: 4, type: 'day', day: 9 },
+  { row: 1, col: 5, type: 'day', day: 10 },
+  { row: 1, col: 6, type: 'day', day: 11 },
+
+  // Row 2
+  { row: 2, col: 0, type: 'day', day: 12 },
+  { row: 2, col: 1, type: 'day', day: 13 },
+  { row: 2, col: 2, type: 'day', day: 14 },
+  { row: 2, col: 3, type: 'day', day: 15 },
+  { row: 2, col: 4, type: 'day', day: 16 },
+  { row: 2, col: 5, type: 'day', day: 17 },
+  { row: 2, col: 6, type: 'day', day: 18 },
+
+  // Row 3
+  { row: 3, col: 0, type: 'day', day: 19 },
+  { row: 3, col: 1, type: 'day', day: 20 },
+  { row: 3, col: 2, type: 'day', day: 21 },
+  { row: 3, col: 3, type: 'day', day: 22 },
+  { row: 3, col: 4, type: 'day', day: 23 },
+  { row: 3, col: 5, type: 'day', day: 24 },
+  { row: 3, col: 6, type: 'day', day: 25 },
+
+  // Row 4: 26 (TARGET!) to 31 + Star
+  { row: 4, col: 0, type: 'day', day: 26 },
+  { row: 4, col: 1, type: 'day', day: 27 },
+  { row: 4, col: 2, type: 'day', day: 28 },
+  { row: 4, col: 3, type: 'day', day: 29 },
+  { row: 4, col: 4, type: 'day', day: 30 },
+  { row: 4, col: 5, type: 'day', day: 31 },
+  { row: 4, col: 6, type: 'star' },
+];
+
 export const CalendarScene: React.FC<CalendarSceneProps> = ({
   recipientName,
   targetDay = 26,
-  monthName = 'OCTOBER',
   subtitle = 'Can you find your day?',
+  calendarImage = '/assets/october-cat-calendar.png',
   hasCustomBackground = false,
   onContinue,
 }) => {
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [clickedCellKey, setClickedCellKey] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [catWobble, setCatWobble] = useState(false);
 
-  // Calendar dates matrix for October matching the exact image uploaded
-  // Row 1: NOTES (Sun), empty (Mon, Tue, Wed), 1 (Thu), 2 (Fri), 3 (Fri?), 4 (Sat)
-  // Matching wefwd.png layout:
-  // Weekdays: SUN, MON, TUE, WED, THU, FRI, SAT
-  const calendarGrid = [
-    // Row 1: NOTES box under SUN, empty for MON, TUE, WED, then 1, 2, 3, 4
-    [
-      { type: 'notes', label: 'NOTES' },
-      { type: 'empty' },
-      { type: 'empty' },
-      { type: 'empty' },
-      { type: 'day', day: 1 },
-      { type: 'day', day: 2 },
-      { type: 'day', day: 3 },
-      { type: 'day', day: 4 },
-    ],
-    // Row 2: 5 to 11
-    [
-      { type: 'day', day: 5 },
-      { type: 'day', day: 6 },
-      { type: 'day', day: 7 },
-      { type: 'day', day: 8 },
-      { type: 'day', day: 9 },
-      { type: 'day', day: 10 },
-      { type: 'day', day: 11 },
-    ],
-    // Row 3: 12 to 18
-    [
-      { type: 'day', day: 12 },
-      { type: 'day', day: 13 },
-      { type: 'day', day: 14 },
-      { type: 'day', day: 15 },
-      { type: 'day', day: 16 },
-      { type: 'day', day: 17 },
-      { type: 'day', day: 18 },
-    ],
-    // Row 4: 19 to 25
-    [
-      { type: 'day', day: 19 },
-      { type: 'day', day: 20 },
-      { type: 'day', day: 21 },
-      { type: 'day', day: 22 },
-      { type: 'day', day: 23 },
-      { type: 'day', day: 24 },
-      { type: 'day', day: 25 },
-    ],
-    // Row 5: 26 to 31
-    [
-      { type: 'day', day: 26 },
-      { type: 'day', day: 27 },
-      { type: 'day', day: 28 },
-      { type: 'day', day: 29 },
-      { type: 'day', day: 30 },
-      { type: 'day', day: 31 },
-      { type: 'empty' },
-    ],
-  ];
+  const handleCellClick = (cell: GridCell) => {
+    const key = `${cell.row}-${cell.col}`;
+    setClickedCellKey(key);
 
-  const handleDayClick = (day: number) => {
-    setSelectedDay(day);
+    if (cell.type === 'notes') {
+      sounds.playPop();
+      setFeedback('Notes: A big celebration is coming up! 📝✨');
+      return;
+    }
 
-    if (day === targetDay) {
+    if (cell.type === 'star') {
+      sounds.playCelebrationFanfare();
+      setFeedback('A lucky retro star for your new year! 🌟');
+      return;
+    }
+
+    if (cell.type === 'empty') {
+      sounds.playBlowCandle();
+      setFeedback('Nothing happened here... 🤔');
+      return;
+    }
+
+    // Day clicked
+    if (cell.day === targetDay) {
       setIsSuccess(true);
-      setFeedback("🎉 You found it! Opening your birthday surprise...");
+      setCatWobble(true);
+      setFeedback('🎉 You found it! Opening your birthday surprise...');
       sounds.playCelebrationFanfare();
 
       try {
         confetti({
-          particleCount: 60,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#fed330', '#ff4757', '#2ed573', '#54a0ff'],
+          particleCount: 75,
+          spread: 90,
+          origin: { y: 0.55 },
+          colors: ['#fed330', '#ff4757', '#2ed573', '#54a0ff', '#feca57'],
         });
       } catch {
         // ignore
@@ -103,22 +124,35 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
 
       setTimeout(() => {
         onContinue();
-      }, 1400);
+      }, 1500);
     } else {
-      setFeedback("Nothing happened... 🤔");
-      sounds.playBlowCandle(); // soft subtle tap feedback
+      sounds.playBlowCandle();
+      setFeedback('Nothing happened... 🤔');
     }
   };
 
+  const handleCatClick = () => {
+    setCatWobble(true);
+    sounds.playPop();
+    setFeedback('The screaming cat says: Meow! Look closely at the dates! 🐾');
+    setTimeout(() => setCatWobble(false), 600);
+  };
+
   return (
-    <section className={`relative flex min-h-screen flex-col items-center justify-center px-4 py-8 z-10 ${hasCustomBackground ? 'bg-transparent' : 'bg-gradient-to-b from-[#e35d37] via-[#d6512b] to-[#b93f1d]'}`}>
-      {/* Background subtle noise and warm retro glow */}
+    <section
+      className={`relative flex min-h-screen flex-col items-center justify-center px-4 py-8 z-10 ${
+        hasCustomBackground
+          ? 'bg-transparent'
+          : 'bg-gradient-to-b from-[#e35d37] via-[#d6512b] to-[#b93f1d]'
+      }`}
+    >
+      {/* Background subtle retro noise pattern when default */}
       {!hasCustomBackground && (
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
       )}
 
-      {/* Top prompt */}
-      <div className="animate-rise text-center mb-4 z-10 max-w-md">
+      {/* Top Riddle Prompt */}
+      <div className="animate-rise text-center mb-3 z-10 max-w-md">
         <p className="font-display italic text-lg sm:text-xl text-amber-100 flex items-center justify-center gap-2 drop-shadow-md">
           <Sparkles size={16} className="text-yellow-300 animate-pulse" />
           <span>{subtitle}</span>
@@ -126,166 +160,84 @@ export const CalendarScene: React.FC<CalendarSceneProps> = ({
         </p>
       </div>
 
-      {/* Retro Wall Calendar Card */}
+      {/* Authentic Illustrated Wall Calendar Poster */}
       <div
-        className={`animate-rise relative max-w-sm sm:max-w-md w-full bg-[#f6efe1] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.5)] border-4 border-black overflow-hidden flex flex-col transition-all duration-500 ${
+        className={`animate-rise relative max-w-[360px] sm:max-w-[420px] w-full rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.6)] border-4 border-black overflow-hidden bg-[#f6efe1] flex flex-col transition-all duration-500 ${
           isSuccess ? 'scale-[1.02] ring-4 ring-yellow-400' : ''
-        }`}
+        } ${catWobble ? 'animate-bounce' : ''}`}
         style={{ animationDelay: '.2s' }}
       >
-        {/* ================= TOP ORANGE BANNER WITH RETRO "OCTOBER" ================= */}
-        <div className="relative bg-[#dc5436] border-b-4 border-black p-4 sm:p-5 flex flex-col items-center justify-between min-h-[170px] sm:min-h-[200px]">
-          {/* Inner dark border frame matching the original sketch */}
-          <div className="absolute inset-3 border-2 border-black/80 rounded pointer-events-none" />
+        {/* Poster Image Container */}
+        <div className="relative w-full aspect-[600/1024] select-none bg-[#f6efe1]">
+          {/* Authentic Artwork */}
+          <img
+            src={calendarImage || '/assets/october-cat-calendar.png'}
+            alt="October Screaming Cat Calendar"
+            className="w-full h-full object-contain pointer-events-none"
+            loading="eager"
+          />
 
-          {/* Bold Retro Yellow Bubble Typography */}
-          <h1
-            className="font-display font-black text-5xl sm:text-6xl text-[#fcd73a] tracking-wider select-none text-center drop-shadow-[3px_3px_0px_#000] uppercase"
-            style={{ WebkitTextStroke: '2px #000' }}
+          {/* Interactive Easter Egg: Tap Screaming Cat */}
+          <button
+            type="button"
+            onClick={handleCatClick}
+            className="absolute top-[18%] left-[12%] w-[76%] h-[32%] cursor-pointer rounded-full opacity-0 hover:opacity-10 transition-opacity bg-amber-400/20"
+            title="Click the cat!"
+            aria-label="Cat Illustration"
+          />
+
+          {/* ================= EXACT 5x7 INTERACTIVE CALENDAR GRID OVERLAY ================= */}
+          <div
+            className="absolute grid grid-cols-7 grid-rows-5"
+            style={{
+              top: '53.5%',
+              left: '4%',
+              width: '91.7%',
+              height: '31.6%',
+            }}
           >
-            {monthName}
-          </h1>
+            {POSTER_CELLS.map((cell) => {
+              const isTarget = cell.day === targetDay;
+              const isCellClicked = clickedCellKey === `${cell.row}-${cell.col}`;
 
-          {/* Inscription inside the orange area */}
-          <div className="my-auto text-center px-4 z-10">
-            <span className="font-display italic text-white/95 text-sm sm:text-base drop-shadow-sm">
-              {recipientName ? `A birthday surprise for ${recipientName} 🎂` : 'A very special date awaits ✨'}
-            </span>
-            <p className="text-[11px] font-mono text-amber-200/80 mt-1 tracking-wider">
-              Only someone special knows which day to tap...
-            </p>
-          </div>
-
-          {/* Skyline sketch silhouette at the bottom of the orange box */}
-          <div className="w-full flex items-end justify-center h-4 opacity-75">
-            <div className="w-24 h-3 bg-black/60 rounded-t" />
-            <div className="w-8 h-4 bg-black/70 rounded-t ml-1" />
-            <div className="w-16 h-2 bg-black/50 rounded-t ml-1" />
-          </div>
-        </div>
-
-        {/* ================= CALENDAR DAYS GRID ================= */}
-        <div className="bg-[#f6efe1] p-3 sm:p-4 select-none">
-          {/* Day of Week Headers */}
-          <div className="grid grid-cols-7 border-b-2 border-black text-center pb-1 mb-1 font-bold font-mono text-[11px] sm:text-xs text-black">
-            <span>SUN</span>
-            <span>MON</span>
-            <span>TUE</span>
-            <span>WED</span>
-            <span>THU</span>
-            <span>FRI</span>
-            <span>SAT</span>
-          </div>
-
-          {/* Grid rows */}
-          <div className="flex flex-col border-2 border-black divide-y-2 divide-black bg-[#f9f4e9]">
-            {/* Row 1 */}
-            <div className="grid grid-cols-7 divide-x-2 divide-black h-11 sm:h-12">
-              {/* NOTES Block under SUN */}
-              <div className="bg-black text-white flex items-center justify-center font-black font-mono text-xs tracking-wider">
-                NOTES
-              </div>
-              <div className="bg-[#f0e9d8]/40" />
-              <div className="bg-[#f0e9d8]/40" />
-              <div className="bg-[#f0e9d8]/40" />
-              {[1, 2, 3].map((d) => (
+              return (
                 <button
-                  key={d}
-                  onClick={() => handleDayClick(d)}
-                  className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer flex flex-col justify-between"
+                  key={`${cell.row}-${cell.col}`}
+                  type="button"
+                  onClick={() => handleCellClick(cell)}
+                  aria-label={cell.day ? `Day ${cell.day}` : cell.label || 'Calendar cell'}
+                  className={`relative w-full h-full cursor-pointer transition-all flex items-center justify-center group ${
+                    isCellClicked && !isTarget ? 'animate-pulse' : ''
+                  }`}
                 >
-                  <span className="text-xs font-bold text-black">{d}</span>
+                  {/* Subtle hover indicator without giving away any secret */}
+                  <div className="absolute inset-0.5 rounded transition-all group-hover:bg-amber-400/20" />
+
+                  {/* Target Success Reveal (October 26) */}
+                  {isTarget && isSuccess && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none animate-bounce">
+                      {/* Hand-drawn glowing yellow highlight circle */}
+                      <div className="absolute inset-0.5 rounded-full border-2 border-red-500 bg-yellow-300/80 shadow-[0_0_12px_rgba(255,215,0,0.8)]" />
+                      <span className="relative text-[9px] sm:text-[10px] font-black text-red-700 tracking-tight leading-none uppercase">
+                        YOU! 🎂
+                      </span>
+                    </div>
+                  )}
                 </button>
-              ))}
-            </div>
-
-            {/* Row 2: 4 to 10 */}
-            <div className="grid grid-cols-7 divide-x-2 divide-black h-11 sm:h-12">
-              {[4, 5, 6, 7, 8, 9, 10].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleDayClick(d)}
-                  className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer flex flex-col justify-between"
-                >
-                  <span className="text-xs font-bold text-black">{d}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Row 3: 11 to 17 */}
-            <div className="grid grid-cols-7 divide-x-2 divide-black h-11 sm:h-12">
-              {[11, 12, 13, 14, 15, 16, 17].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleDayClick(d)}
-                  className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer flex flex-col justify-between"
-                >
-                  <span className="text-xs font-bold text-black">{d}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Row 4: 18 to 24 */}
-            <div className="grid grid-cols-7 divide-x-2 divide-black h-11 sm:h-12">
-              {[18, 19, 20, 21, 22, 23, 24].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleDayClick(d)}
-                  className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer flex flex-col justify-between"
-                >
-                  <span className="text-xs font-bold text-black">{d}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Row 5: 25, 26 (TARGET!), 27, 28, 29, 30, 31 */}
-            <div className="grid grid-cols-7 divide-x-2 divide-black h-12 sm:h-13">
-              <button
-                onClick={() => handleDayClick(25)}
-                className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer"
-              >
-                <span className="text-xs font-bold text-black">25</span>
-              </button>
-
-              {/* TARGET BIRTHDAY DATE: OCTOBER 26 (Looks identical to any normal date until clicked) */}
-              <button
-                onClick={() => handleDayClick(26)}
-                aria-label="Day 26"
-                className={`relative p-1 text-left transition-all cursor-pointer flex flex-col justify-between ${
-                  isSuccess
-                    ? 'bg-yellow-300 ring-4 ring-amber-500 scale-105 z-20 animate-pulse'
-                    : 'hover:bg-amber-200/50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-black">26</span>
-                  {isSuccess && <span className="text-xs animate-bounce">🎂</span>}
-                </div>
-                {isSuccess && (
-                  <div className="border border-red-500 rounded-full py-0.5 px-1 text-[8px] font-bold text-red-600 text-center leading-none bg-red-100">
-                    YOU! ✨
-                  </div>
-                )}
-              </button>
-
-              {[27, 28, 29, 30, 31].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleDayClick(d)}
-                  className="relative p-1 text-left hover:bg-amber-200/50 transition cursor-pointer flex flex-col justify-between"
-                >
-                  <span className="text-xs font-bold text-black">{d}</span>
-                </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Feedback Bar */}
-        <div className="p-3 bg-black text-center min-h-[44px] flex items-center justify-center">
+        {/* Vintage Comic Feedback Bar */}
+        <div className="p-3 bg-black text-center min-h-[46px] flex items-center justify-center border-t-2 border-black">
           <p
             className={`text-xs font-mono font-medium transition-all ${
-              isSuccess ? 'text-yellow-300 font-bold' : feedback ? 'text-amber-200' : 'text-zinc-400'
+              isSuccess
+                ? 'text-yellow-300 font-bold'
+                : feedback
+                ? 'text-amber-200'
+                : 'text-zinc-400'
             }`}
           >
             {feedback || 'Tap a date on the calendar to explore...'}

@@ -1,4 +1,4 @@
-export type Scene = 'calendar' | 'letter' | 'intro' | 'message' | 'playlist' | 'gallery';
+export type Scene = 'calendar' | 'letter' | 'intro' | 'message' | 'playlist' | 'voucher' | 'gallery';
 
 export interface MemoryItem {
   id: string;
@@ -65,7 +65,17 @@ export interface SiteConfig {
   cakeBackground?: string;
   messageBackground?: string;
   playlistBackground?: string;
+  voucherBackground?: string;
   galleryBackground?: string;
   globalBackground?: string;
   backgroundOverlayOpacity?: number;
+  // Voucher Scene (Roblox VIP Birthday Pass)
+  voucherTitle?: string;
+  voucherSubtitle?: string;
+  voucherBadgeText?: string;
+  voucherValidityText?: string;
+  voucherMainText?: string;
+  voucherGameText?: string;
+  voucherExtraRewardsText?: string;
+  voucherClaimed?: boolean;
 }
